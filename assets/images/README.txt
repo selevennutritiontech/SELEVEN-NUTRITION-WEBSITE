@@ -1,12 +1,5 @@
-Images used by the site. Replace a file with the same name to change an image.
+Original-quality copies of the website pictures (kept for reference and future edits).
 
-  seleven-logo.png                       S-ELEVEN Nutrition Pvt Ltd logo (header and footer)
-  hero-company-introduction.jpg          Hero
-  about-corporate-building.jpg           About Us
-  building-better-health.jpg             Optional small inset on the About image (hidden if absent)
-  brands-portfolio-banner.jpg            Banner under the brand cards (UENERGY launching soon)
-  brand-bolt.png, brand-ved.png, brand-wheymill.png, brand-eleo1ne.png, brand-pureluxe.png
-                                         Brand logos
-  services-business-process.jpg, services-merchant-exporter.jpg
-                                         Photos under "What We Do"
-  nutraceutical-market-insights.jpg      Market Insights
+The pages themselves no longer depend on this folder: every picture is embedded inside
+index.html and creator-programme/index.html, so the site shows all images even if this
+folder is missing. To change a picture, send the new file and a rebuilt index.html is made.

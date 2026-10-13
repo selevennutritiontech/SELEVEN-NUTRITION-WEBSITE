@@ -1,0 +1,6 @@
+{
+  "redirects": [
+    { "source": "/backend/:path*", "destination": "/", "permanent": false },
+    { "source": "/README.md", "destination": "/", "permanent": false }
+  ]
+}

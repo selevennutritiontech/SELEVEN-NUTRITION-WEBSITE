@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>S-ELEVEN Creator Programme — Team Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#0B1B3A;
+    --navy-2:#070F24;
+    --teal:#14357A;
+    --orange:#FF5A1F;
+    --red:#D8232A;
+    --gold:#8FB2F2;
+    --green:#3fae6a;
+    --offwhite:#F3F7FD;
+    --white:#FFFFFF;
+    --black:#000000;
+    --display: "Manrope", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    --body: "Manrope", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+    --mono: "Manrope", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--offwhite);
+    background-attachment:fixed;
+    color:var(--navy);
+    font-family:var(--body);
+    line-height:1.5;
+    min-height:100vh;
+    position:relative;
+  }
+
+  /* ---------- massive fixed wallpaper behind the whole dashboard ---------- */
+  .wallpaper{
+    position:fixed; inset:0; z-index:-1;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 10% 6%, rgba(143,178,242,0.42) 0%, rgba(143,178,242,0) 34%),
+      radial-gradient(circle at 94% 8%, rgba(216,35,42,0.30) 0%, rgba(216,35,42,0) 36%),
+      radial-gradient(circle at 6% 92%, rgba(20,53,122,0.40) 0%, rgba(20,53,122,0) 38%),
+      radial-gradient(circle at 96% 96%, rgba(216,35,42,0.30) 0%, rgba(216,35,42,0) 38%),
+      radial-gradient(circle at 50% 42%, rgba(11,27,58,0.08) 0%, rgba(11,27,58,0) 58%),
+      linear-gradient(135deg, #eef3fb 0%, var(--offwhite) 45%, #eef3fb 100%);
+  }
+  .wallpaper svg{
+    position:absolute; top:50%; left:50%;
+    width:max(180vw, 1900px); height:max(180vh, 1300px);
+    transform:translate(-50%,-50%);
+    opacity:0.9;
+  }
+
+  /* ---------- floating glass-card treatment for everything sitting on the wallpaper ---------- */
+  .stat-card{
+    backdrop-filter:blur(6px);
+    box-shadow:0 18px 34px -10px rgba(11,27,58,0.35), 0 2px 6px rgba(11,27,58,0.12);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .stat-card:hover{transform:translateY(-3px); box-shadow:0 24px 40px -8px rgba(11,27,58,0.4), 0 2px 6px rgba(11,27,58,0.15);}
+  .chart-card{
+    background:rgba(255,255,255,0.86);
+    backdrop-filter:blur(10px);
+    box-shadow:0 20px 40px -12px rgba(11,27,58,0.22), 0 2px 6px rgba(11,27,58,0.06);
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .chart-card:hover{transform:translateY(-3px);}
+  .table-wrap{
+    background:rgba(255,255,255,0.14);
+    backdrop-filter:blur(16px);
+    box-shadow:0 26px 48px -16px rgba(11,27,58,0.28), 0 2px 8px rgba(11,27,58,0.08);
+  }
+  .login-box{
+    background:rgba(255,255,255,0.92);
+    backdrop-filter:blur(12px);
+    box-shadow:0 30px 60px rgba(11,27,58,0.22);
+  }
+
+  .topbar{
+    background:linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+    color:var(--white);
+    padding:26px 5vw;
+    border-bottom:4px solid var(--red);
+  }
+  .brand{font-family:var(--display); font-weight:800; font-size:20px; letter-spacing:.03em;}
+  .brand span{color:var(--gold);}
+  .subtitle{font-size:12px; color:rgba(255,255,255,0.65); font-family:var(--mono); font-weight:700; text-transform:uppercase; letter-spacing:.18em; margin-top:4px;}
+
+  /* full screen-width working area */
+  .wrap{width:100%; margin:0 auto; padding:26px 2.2vw 70px;}
+
+  .login-box{
+    max-width:420px; margin:70px auto; text-align:center;
+    border-radius:12px; padding:44px 34px;
+  }
+  .login-box h1{font-family:var(--display); font-weight:800; font-size:20px; margin-bottom:8px;}
+  .login-box p{color:#5b6b80; font-size:13.5px; margin-bottom:22px;}
+  .login-box input{
+    width:100%; padding:13px 14px; border:1px solid #d7deea; border-radius:8px;
+    font-size:14px; margin-bottom:14px;
+  }
+  .login-box button{
+    width:100%; background:var(--teal); color:var(--white); border:none;
+    font-weight:700; text-transform:uppercase; letter-spacing:.04em; font-size:13.5px;
+    padding:13px 20px; border-radius:8px; cursor:pointer;
+  }
+  .login-box button:hover{filter:brightness(1.1);}
+  .login-error{color:var(--red); font-size:12.5px; margin-top:10px; min-height:16px;}
+
+  /* ---------- section labels ---------- */
+  .section-label{
+    font-family:var(--mono); font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:.12em;
+    color:#8b98ab; margin:4px 0 8px;
+  }
+
+  /* ---------- scroll-triggered entrance animations ---------- */
+  .reveal{
+    opacity:0;
+    transition:opacity .8s cubic-bezier(.22,.61,.36,1), transform .8s cubic-bezier(.22,.61,.36,1);
+    will-change:opacity, transform;
+  }
+  .reveal-left{transform:translateX(-60px);}
+  .reveal-right{transform:translateX(60px);}
+  .reveal-up{transform:translateY(50px);}
+  .reveal-down{transform:translateY(-50px);}
+  .reveal-scale{transform:scale(.85);}
+  .reveal-visible{opacity:1; transform:none;}
+
+  /* Browsers block CSS transforms on table rows (tr/td are "internal table
+     elements" per spec), so entry rows get a colour-sweep fade instead of a
+     directional slide — the detail panel underneath each row (a normal div)
+     still gets the full slide/scale treatment above. */
+  tr.row-reveal{opacity:0;}
+  @keyframes rowSweepGold{ from{opacity:0; background-color:rgba(143,178,242,0.28);} to{opacity:1;} }
+  @keyframes rowSweepTeal{ from{opacity:0; background-color:rgba(20,53,122,0.22);} to{opacity:1;} }
+  @keyframes rowSweepOrange{ from{opacity:0; background-color:rgba(255,90,31,0.22);} to{opacity:1;} }
+  tr.row-reveal.row-visible.sweep-gold td{animation:rowSweepGold .55s ease forwards;}
+  tr.row-reveal.row-visible.sweep-teal td{animation:rowSweepTeal .55s ease forwards;}
+  tr.row-reveal.row-visible.sweep-orange td{animation:rowSweepOrange .55s ease forwards;}
+  tr.row-reveal.row-visible{opacity:1;}
+
+  /* ---------- sticky analytics panel ---------- */
+  /* Transparent by default so the wallpaper shows through and the stat/chart cards
+     read as floating. Only picks up a solid backing once it's actually pinned to the
+     top during scroll (is-stuck), so the table scrolling underneath doesn't show
+     through and clash with it. */
+  .analytics-panel{
+    position:sticky; top:0; z-index:50;
+    background:transparent;
+    padding-top:14px; margin:0 -2.2vw; padding-left:2.2vw; padding-right:2.2vw;
+    transition:box-shadow .15s ease, background-color .15s ease;
+  }
+  .analytics-panel.is-stuck{
+    background:rgba(243,247,253,0.94);
+    backdrop-filter:blur(10px);
+    box-shadow:0 10px 18px -6px rgba(11,27,58,0.18);
+    border-bottom:1px solid #e4e9f1;
+  }
+  .analytics-toggle-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
+  .analytics-toggle-btn{
+    border:1px solid #d7deea; background:var(--white); color:var(--teal);
+    font-family:var(--mono); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+    padding:6px 12px; border-radius:6px; cursor:pointer;
+  }
+  .analytics-toggle-btn:hover{background:#eef3fb;}
+  .charts-collapsible{
+    display:grid; grid-template-rows:1fr; transition:grid-template-rows .2s ease;
+  }
+  .charts-collapsible.collapsed{grid-template-rows:0fr;}
+  .charts-collapsible > div{overflow:hidden; min-height:0;}
+
+  /* ---------- stat cards ---------- */
+  .stat-row{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:14px;
+    margin-bottom:10px;
+  }
+  .stat-card{
+    background:var(--navy); color:var(--white);
+    border-radius:10px; padding:16px 18px;
+    border-top:4px solid var(--gold);
+  }
+  .stat-card.st-total{border-top-color:var(--gold);}
+  .stat-card.st-reviewed{border-top-color:var(--teal);}
+  .stat-card.st-accepted{border-top-color:var(--green);}
+  .stat-card.st-rejected{border-top-color:var(--red);}
+  .stat-card.st-pending{border-top-color:var(--orange);}
+  .stat-card .snum{font-family:var(--display); font-weight:800; font-size:24px; color:var(--gold);}
+  .stat-card.st-accepted .snum{color:#68d597;}
+  .stat-card.st-rejected .snum{color:#ff8a9a;}
+  .stat-card.st-pending .snum{color:var(--orange);}
+  .stat-card .slabel{font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,0.65); margin-top:2px;}
+
+  /* ---------- chart cards ---------- */
+  .chart-row{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px;
+    margin-bottom:20px;
+  }
+  .chart-card{
+    border:1px solid #e4e9f1; border-radius:12px;
+    padding:16px 18px 10px;
+    display:flex; flex-direction:column;
+  }
+  .chart-card h4{
+    font-family:var(--display); font-weight:800; font-size:12px; letter-spacing:.02em; text-transform:uppercase;
+    color:var(--navy); margin-bottom:10px;
+  }
+  .chart-canvas-wrap{
+    position:relative; height:180px;
+    filter:drop-shadow(0 6px 10px rgba(11,27,58,0.12));
+  }
+
+  .toolbar{
+    display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .toolbar-left{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .stat{font-family:var(--mono); font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--teal);}
+  .toolbar-right{display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{
+    border:none; font-weight:700; text-transform:uppercase; letter-spacing:.04em; font-size:12.5px;
+    padding:11px 20px; border-radius:6px; cursor:pointer;
+  }
+  .btn-teal{background:var(--teal); color:var(--white);}
+  .btn-orange{background:var(--red); color:var(--white);}
+  .btn:hover{filter:brightness(1.1);}
+  .btn:disabled{opacity:.5; cursor:default;}
+
+  .filter-input, .filter-select{
+    border:1px solid #d7deea; border-radius:6px; padding:9px 12px;
+    font-size:12.5px; font-family:var(--body); background:var(--white); color:var(--navy);
+  }
+  .filter-input{min-width:200px;}
+
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid #e4e9f1; border-top:none; border-radius:0 0 12px 12px;
+  }
+  /* table-layout:fixed + explicit colgroup widths keep every column on screen
+     at once (no side-scrolling). Each applicant is two rows — the operational
+     row, then its detail row directly beneath — always visible, no toggling. */
+  /* Screen-reader-only: keeps the real <thead> in the accessibility tree
+     without it being visible or affecting layout at all. */
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  /* The real sticky header — a plain div, deliberately placed as a sibling
+     above table-wrap rather than inside it (see JS comment at fixedHeaderHtml
+     for why). Column widths mirror the table's own colgroup exactly. */
+  .fixed-col-header{
+    display:flex; width:100%;
+    background:var(--navy); color:var(--gold);
+    position:sticky; top:var(--panel-h, 0px); z-index:40;
+    border-radius:12px 12px 0 0;
+    box-shadow:0 4px 8px -4px rgba(11,27,58,0.25);
+  }
+  .fch-cell{
+    padding:13px 12px; text-transform:uppercase; letter-spacing:.04em;
+    font-size:11px; font-weight:700; white-space:normal; box-sizing:border-box;
+    flex-shrink:0;
+  }
+
+  table.data-table{width:100%; border-collapse:separate; border-spacing:0; font-size:13.5px; table-layout:fixed;}
+  table.data-table th{
+    background:var(--navy); color:var(--gold);
+    text-align:left; padding:13px 12px; text-transform:uppercase;
+    letter-spacing:.04em; font-size:11px; white-space:normal;
+    position:sticky; top:var(--panel-h, 0px); z-index:40;
+    box-shadow:0 4px 8px -4px rgba(11,27,58,0.25);
+  }
+  table.data-table td{
+    padding:13px 12px; border-top:1px solid #eef1f6; white-space:normal; color:#20304a;
+    vertical-align:middle; overflow-wrap:break-word; word-break:break-word;
+  }
+  table.data-table td.pitch-cell{white-space:normal; max-width:260px;}
+  table.data-table td.name-cell .full-name{font-weight:700; color:var(--navy); font-size:14.5px;}
+  table.data-table td.name-cell .sub-line{display:block; font-size:11.5px; color:#6b7890; margin-top:3px;}
+  .delete-entry-btn{
+    display:block; margin-top:6px; border:none; background:none; padding:0;
+    font-size:10.5px; font-weight:700; color:#a3aebf; cursor:pointer;
+    letter-spacing:.02em; text-transform:uppercase;
+  }
+  .delete-entry-btn:hover{color:var(--red); text-decoration:underline;}
+  table.data-table td.contact-cell .sub-line{display:block; font-size:11.5px; color:#6b7890; margin-top:3px;}
+
+  /* ---------- entry grouping: main row + its detail row read as one card ---------- */
+  /* alternating soft tint so each applicant's two rows are easy to tell apart at a glance */
+  tr.entry-main.entry-tint-a td, tr.entry-detail.entry-tint-a td{background:rgba(251,253,255,0.82);}
+  tr.entry-main.entry-tint-b td, tr.entry-detail.entry-tint-b td{background:rgba(244,248,251,0.82);}
+  tr.entry-main:hover td{background:#e8f0fb;}
+  tr.entry-main td{border-top:1px solid #e4e9f1; padding-top:9px; padding-bottom:9px;}
+
+  /* left accent stripe on the first cell of every main row */
+  tr.entry-main td:first-child{border-left:5px solid #c9d2e0; padding-left:9px;}
+
+  /* rejected profiles: everything but the Status column reads as locked/inactive */
+  select:disabled, input:disabled, button:disabled{
+    opacity:.55; cursor:not-allowed; background:#eef1f6 !important; color:#9aa5b5 !important;
+    border-color:#e4e9f1 !important; filter:none !important;
+  }
+  tr.entry-main.entry-locked td:not(:nth-child(3)){opacity:.7;}
+  tr.entry-main.entry-locked td:first-child{border-left-color:#9aa5b5;}
+  tr.entry-detail.entry-locked{opacity:.7;}
+
+  tr.entry-detail td{padding:0; border-top:none;}
+  tr.entry-detail .detail-inner{
+    padding:8px 12px 12px; display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(135px, 1fr));
+    gap:6px; overflow:visible;
+  }
+  tr.entry-detail .detail-field{min-width:0; display:flex; flex-direction:column;}
+  tr.entry-detail .detail-field .dlabel{
+    font-family:var(--mono); font-weight:700; font-size:9px; text-transform:uppercase; letter-spacing:.07em;
+    color:#6b7890; margin-bottom:2px; font-weight:700; white-space:nowrap;
+  }
+  /* attractive gradient box behind every filled-in answer — same size across the row */
+  tr.entry-detail .detail-field .dvalue{
+    font-size:11.5px; color:#1c2a42; word-break:break-word; font-weight:600;
+    background:linear-gradient(135deg, #e8f0fb 0%, #eef4fb 55%, #fdf5e6 100%);
+    border:1px solid #e1ecf3; border-radius:6px; padding:6px 8px;
+    box-shadow:0 1px 3px rgba(11,27,58,0.05);
+    height:100%; display:flex; align-items:center;
+  }
+  tr.entry-detail .detail-field.pitch-field,
+  tr.entry-detail .detail-field.spec-field,
+  tr.entry-detail .detail-field.repeat-field{grid-column:1 / -1;}
+  tr.entry-detail .detail-field .repeat-controls{display:flex; flex-direction:row; gap:10px; align-items:center;}
+  tr.entry-detail .detail-field .repeat-controls .yn-btns{gap:4px;}
+  tr.entry-detail .detail-field .repeat-controls .brand-select{max-width:220px; padding:5px 6px; font-size:10.5px;}
+
+  .empty-state{text-align:center; padding:70px 20px; color:#8b98ab;}
+  .empty-state h3{color:var(--navy); font-family:var(--display); font-weight:800; font-size:18px; margin-bottom:8px;}
+
+  /* ---------- status buttons ---------- */
+  .status-btns, .yn-btns{display:flex; gap:5px; flex-wrap:wrap;}
+  .stbtn, .ynbtn{
+    border:1px solid #d7deea; background:var(--white); color:#5b6b80;
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+    padding:7px 8px; border-radius:6px; cursor:pointer; white-space:nowrap; flex:1 1 auto;
+  }
+  .stbtn:hover, .ynbtn:hover{filter:brightness(0.97);}
+  .stbtn.active-review{background:var(--teal); border-color:var(--teal); color:var(--white);}
+  .stbtn.active-accept{background:var(--green); border-color:var(--green); color:var(--white);}
+  .stbtn.active-reject{background:var(--red); border-color:var(--red); color:var(--white);}
+  .ynbtn.yn-yes{background:var(--green); border-color:var(--green); color:var(--white);}
+  .ynbtn.yn-no{background:var(--red); border-color:var(--red); color:var(--white);}
+
+  .brand-select, .stage-select{
+    border:1px solid #d7deea; border-radius:6px; padding:8px 7px; font-size:11.5px;
+    background:var(--offwhite); color:var(--navy); width:100%; max-width:160px;
+  }
+  .brand-select.has-brand{background:var(--gold); border-color:var(--gold); font-weight:700; color:var(--navy-2);}
+  .stage-select.has-stage{background:var(--teal); border-color:var(--teal); font-weight:700; color:var(--white);}
+  .shipment-select{border:1px solid #d7deea; border-radius:6px; padding:8px 10px; font-size:12px; background:var(--offwhite); color:var(--navy); min-width:150px;}
+  .shipment-select.ship-pending{background:var(--gold); border-color:var(--gold); font-weight:700; color:var(--navy-2);}
+  .shipment-select.ship-transit{background:var(--orange); border-color:var(--orange); font-weight:700; color:var(--white);}
+  .shipment-select.ship-delivered{background:var(--green); border-color:var(--green); font-weight:700; color:var(--white);}
+
+  .mrp-input{
+    border:1px solid #d7deea; border-radius:6px; padding:8px 9px; font-size:12.5px; width:100%;
+  }
+  .dep-order{
+    font-size:11px; font-weight:700; color:var(--navy-2);
+    background:linear-gradient(135deg, var(--gold), #cfe0fb);
+    padding:5px 9px; border-radius:6px; display:inline-block; white-space:normal;
+  }
+  .dep-manual{
+    font-size:11px; font-weight:700; color:var(--white);
+    background:linear-gradient(135deg, var(--teal), #1d4ba8);
+    padding:5px 9px; border-radius:6px; display:inline-block; white-space:normal;
+  }
+  .dep-empty{color:#a3aebf;}
+
+  .note-cell{display:flex; flex-direction:column; gap:5px; align-items:stretch;}
+  .note-input{
+    border:1px solid #d7deea; border-radius:6px; padding:8px 9px; font-size:12.5px;
+    width:100%; color:var(--navy);
+  }
+  .note-savebtn{
+    border:none; background:var(--orange); color:var(--white); font-size:10.5px; font-weight:700;
+    padding:7px 9px; border-radius:5px; cursor:pointer; text-transform:uppercase; align-self:flex-start;
+  }
+  .note-savebtn:hover{filter:brightness(1.1);}
+  .note-savebtn.saved{background:var(--green);}
+
+  footer.note{
+    width:100%; margin:24px auto 0; padding:0 2.2vw;
+    font-size:11.5px; color:#8b98ab; font-style:italic;
+  }
+
+  @media (max-width:1300px){
+    .chart-row{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:1100px){
+    .stat-row{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:900px){
+    tr.entry-detail .detail-inner{gap:6px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wallpaper" aria-hidden="true">
+  <svg viewBox="0 0 1600 1000" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#8FB2F2" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#D8232A" stop-opacity="0.4"/>
+      </linearGradient>
+      <linearGradient id="camGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#14357A" stop-opacity="0.55"/>
+        <stop offset="100%" stop-color="#0B1B3A" stop-opacity="0.5"/>
+      </linearGradient>
+      <radialGradient id="lensGrad" cx="45%" cy="42%" r="65%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+        <stop offset="60%" stop-color="#14357A" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#0B1B3A" stop-opacity="0.35"/>
+      </radialGradient>
+      <filter id="softBlur" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="14"/>
+      </filter>
+      <filter id="softBlurBig" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="30"/>
+      </filter>
+    </defs>
+
+    <!-- cinematic bokeh field, like an out-of-focus studio background -->
+    <g filter="url(#softBlurBig)">
+      <circle cx="190" cy="150" r="100" fill="#8FB2F2" fill-opacity="0.34"/>
+      <circle cx="1440" cy="130" r="130" fill="#D8232A" fill-opacity="0.30"/>
+      <circle cx="120" cy="900" r="120" fill="#14357A" fill-opacity="0.32"/>
+      <circle cx="1480" cy="880" r="150" fill="#D8232A" fill-opacity="0.24"/>
+      <circle cx="800" cy="500" r="220" fill="#0B1B3A" fill-opacity="0.06"/>
+    </g>
+    <g filter="url(#softBlur)">
+      <circle cx="420" cy="230" r="26" fill="#8FB2F2" fill-opacity="0.4"/>
+      <circle cx="980" cy="150" r="18" fill="#D8232A" fill-opacity="0.45"/>
+      <circle cx="1240" cy="360" r="34" fill="#8FB2F2" fill-opacity="0.35"/>
+      <circle cx="260" cy="640" r="22" fill="#14357A" fill-opacity="0.4"/>
+      <circle cx="1080" cy="820" r="30" fill="#D8232A" fill-opacity="0.3"/>
+      <circle cx="650" cy="760" r="16" fill="#8FB2F2" fill-opacity="0.45"/>
+      <circle cx="1180" cy="600" r="20" fill="#14357A" fill-opacity="0.3"/>
+    </g>
+
+    <!-- oversized soft play-button watermark, centre-right: a nod to reviewing video content -->
+    <g transform="translate(1080,470)" opacity="0.06">
+      <circle cx="0" cy="0" r="330" fill="#0B1B3A"/>
+      <path d="M-100 -170 L200 0 L-100 170 Z" fill="#F4F7F8"/>
+    </g>
+
+    <!-- ring light rig, top-left: creator studio lighting equipment -->
+    <g transform="translate(230,210)">
+      <circle cx="0" cy="0" r="130" fill="none" stroke="url(#ringGrad)" stroke-width="24" stroke-dasharray="16 11"/>
+      <circle cx="0" cy="0" r="130" fill="none" stroke="#8FB2F2" stroke-opacity="0.2" stroke-width="4"/>
+      <line x1="0" y1="130" x2="0" y2="235" stroke="#0B1B3A" stroke-opacity="0.2" stroke-width="10" stroke-linecap="round"/>
+      <rect x="-48" y="226" width="96" height="18" rx="9" fill="#0B1B3A" fill-opacity="0.2"/>
+    </g>
+
+    <!-- camera-on-tripod silhouette, bottom-right: the shoot in progress -->
+    <g transform="translate(1310,760)">
+      <rect x="-72" y="-48" width="144" height="94" rx="14" fill="url(#camGrad)"/>
+      <circle cx="0" cy="0" r="48" fill="url(#lensGrad)"/>
+      <circle cx="0" cy="0" r="48" fill="none" stroke="#F4F7F8" stroke-opacity="0.45" stroke-width="3"/>
+      <rect x="-24" y="-72" width="48" height="20" rx="6" fill="#0B1B3A" fill-opacity="0.4"/>
+      <line x1="0" y1="46" x2="-72" y2="155" stroke="#0B1B3A" stroke-opacity="0.25" stroke-width="9" stroke-linecap="round"/>
+      <line x1="0" y1="46" x2="72" y2="155" stroke="#0B1B3A" stroke-opacity="0.25" stroke-width="9" stroke-linecap="round"/>
+      <line x1="0" y1="46" x2="0" y2="165" stroke="#0B1B3A" stroke-opacity="0.25" stroke-width="9" stroke-linecap="round"/>
+    </g>
+
+    <!-- clapperboard, lower-left: take / production theme -->
+    <g transform="translate(160,830) rotate(-8)">
+      <rect x="-70" y="0" width="140" height="90" rx="8" fill="#0B1B3A" fill-opacity="0.18"/>
+      <rect x="-70" y="-26" width="140" height="30" rx="6" fill="#0B1B3A" fill-opacity="0.25" transform="skewX(-18)"/>
+      <g fill="#F4F7F8" fill-opacity="0.55">
+        <rect x="-64" y="-24" width="18" height="10" transform="skewX(-18)"/>
+        <rect x="-32" y="-24" width="18" height="10" transform="skewX(-18)"/>
+        <rect x="0" y="-24" width="18" height="10" transform="skewX(-18)"/>
+        <rect x="32" y="-24" width="18" height="10" transform="skewX(-18)"/>
+      </g>
+    </g>
+
+    <!-- faint spotlight beams crossing the frame, like key/fill lights on set -->
+    <g opacity="0.09">
+      <polygon points="230,210 900,0 1010,0" fill="#8FB2F2"/>
+      <polygon points="1310,760 1600,500 1600,660" fill="#14357A"/>
+    </g>
+
+    <!-- faint motion / energy lines -->
+    <g stroke="#0B1B3A" stroke-opacity="0.06" stroke-width="6" stroke-linecap="round">
+      <line x1="520" y1="330" x2="660" y2="330"/>
+      <line x1="500" y1="360" x2="620" y2="360"/>
+      <line x1="960" y1="700" x2="1100" y2="700"/>
+      <line x1="940" y1="730" x2="1060" y2="730"/>
+    </g>
+
+    <!-- faint dot grid for texture -->
+    <g fill="#0B1B3A" fill-opacity="0.05">
+      <circle cx="60" cy="60" r="3"/><circle cx="120" cy="60" r="3"/><circle cx="180" cy="60" r="3"/>
+      <circle cx="1420" cy="960" r="3"/><circle cx="1480" cy="960" r="3"/><circle cx="1540" cy="960" r="3"/>
+    </g>
+  </svg>
+</div>
+
+<div class="topbar">
+  <div class="brand">S-ELEVEN <span>DATA EXTRACT</span></div>
+  <div class="subtitle">Creator Programme · Submitted Applications</div>
+</div>
+
+<div class="wrap" id="wrap">
+  <div class="login-box" id="loginBox">
+    <h1>Enter password</h1>
+    <p>Team access only. This does not use a Google account — just the password below.</p>
+    <input type="password" id="passwordInput" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
+    <button onclick="login()">View Submissions</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<footer class="note">Internal tool — do not share this link or password outside your team.</footer>
+
+<script>
+  // Paste your Cloudflare Worker URL here (see worker.js setup instructions).
+  const BACKEND_URL = "https://seleven-creatorprogramme.s-eleventech.workers.dev";
+
+  const BASE_HEADERS = ["Timestamp","Full Name","Phone","Email","City","Country","State/Province","Address Line","Pincode","Platform","Handle","Followers","Avg Views","Dealer Reference","Content Style","Pitch","Specializations","Wants Associate Programme","Agreed To Terms"];
+  const EXTRA_HEADERS = ["Status","Allocated Brand","Stack Amount","Deposit (Rs)","Shipment Status","Production Stage","Notes","Eligible For Repeat Collab","Repeat Collab Brand"];
+
+  const STATUS_OPTIONS = [
+    {value:"Profile Reviewed", label:"Reviewed", cls:"active-review"},
+    {value:"Profile Accepted", label:"Accepted", cls:"active-accept"},
+    {value:"Profile Rejected", label:"Rejected", cls:"active-reject"}
+  ];
+  const BRAND_OPTIONS = ["U-Energy","Vedayu","Bolt Nutrition","Eleone","Wheymill","Uenergy Wellness","PureLuxe"];
+  const STAGE_OPTIONS = [
+    "Video Details Shared",
+    "Video Script Confirmed",
+    "Draft Received",
+    "Video Posted"
+  ];
+  const SHIPMENT_OPTIONS = ["Shipment Pending", "Shipment In Transit", "Shipment Delivered"];
+  // Fulfillment type per brand — "order" brands are self-service: the creator places a
+  // website order themselves. Every other brand is shipped out manually by the team.
+  const BRAND_FULFILLMENT_CONFIG = {
+    "Bolt Nutrition": { type: "manual" },
+    "Vedayu": { type: "order" },
+    "Wheymill": { type: "manual" },
+    "U-Energy": { type: "order" },
+    "Eleone": { type: "manual" },
+    "Uenergy Wellness": { type: "manual" },
+    "PureLuxe": { type: "manual" }
+  };
+
+  let allSubmissions = []; // array of raw submission objects, each carrying an `id`
+  let savedPassword = "";
+  let filters = { status:"", brand:"", stage:"", search:"" };
+  let statusChart = null, brandChart = null, stageChart = null;
+  let chartsCollapsed = false; // user can collapse the chart row to keep the sticky panel compact
+
+  function login(){
+    const password = document.getElementById('passwordInput').value;
+    if (!password){
+      const errorEl = document.getElementById('loginError');
+      errorEl.style.color = "var(--red)";
+      errorEl.textContent = "Enter the password first.";
+      return;
+    }
+    fetchData(password, document.getElementById('loginError'));
+  }
+
+  function refresh(){
+    fetchData(savedPassword, null);
+  }
+
+  function fetchData(password, errorEl){
+    if (BACKEND_URL.indexOf("PASTE_YOUR") === 0){
+      if (errorEl){ errorEl.style.color = "var(--red)"; errorEl.textContent = "Backend URL not set yet in data_extract.html."; }
+      return;
+    }
+    if (errorEl){ errorEl.style.color = "var(--teal)"; errorEl.textContent = "Checking..."; }
+
+    fetch(BACKEND_URL + "/data?password=" + encodeURIComponent(password))
+      .then(function(res){
+        if (res.status === 401) throw new Error("unauthorized");
+        if (!res.ok) throw new Error("bad response");
+        return res.json();
+      })
+      .then(function(data){
+        savedPassword = password;
+        const submissions = data.submissions || [];
+        allSubmissions = submissions.map(function(s, idx){
+          return {
+            id: s.id || (s.timestamp ? s.timestamp + "_" + idx : "row_" + idx),
+            timestamp: s.timestamp, fullName: s.fullName, phone: s.phone, email: s.email, city: s.city,
+            country: s.country || "", stateProvince: s.stateProvince || "", addressLine: s.addressLine || "", pincode: s.pincode || "",
+            platform: s.platform, handle: s.handle, followers: s.followers, avgViews: s.avgViews,
+            dealerRef: s.dealerRef || "",
+            contentStyle: s.contentStyle, pitch: s.pitch, specializations: s.specializations,
+            associate: s.associate, agreed: s.agreed,
+            status: s.status || "", brand: s.brand || "", stage: s.stage || "", note: s.note || "",
+            productMRP: s.productMRP || "", depositReceived: s.depositReceived || "", shipmentStatus: s.shipmentStatus || "",
+            repeatEligible: s.repeatEligible || "", repeatBrand: s.repeatBrand || ""
+          };
+        });
+        renderDashboard();
+      })
+      .catch(function(err){
+        const msg = err.message === "unauthorized" ? "Wrong password." : "Could not reach the backend. Check the Worker URL and that it's deployed.";
+        if (errorEl){
+          errorEl.style.color = "var(--red)";
+          errorEl.textContent = msg;
+        } else {
+          alert(msg);
+        }
+      });
+  }
+
+  function escapeHtml(str){
+    return String(str === null || str === undefined ? "" : str).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  function getFiltered(){
+    return allSubmissions.filter(function(s){
+      if (filters.status && s.status !== filters.status) return false;
+      if (filters.brand && s.brand !== filters.brand) return false;
+      if (filters.stage && s.stage !== filters.stage) return false;
+      if (filters.search){
+        const q = filters.search.toLowerCase();
+        const hay = [s.fullName, s.email, s.phone, s.handle, s.city, s.country, s.pincode].join(" ").toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderDashboard(){
+    const wrap = document.getElementById('wrap');
+
+    if (allSubmissions.length === 0){
+      wrap.innerHTML = '<div class="empty-state"><h3>No submissions yet</h3><p>New applications will show up here once submitted.</p></div>';
+      return;
+    }
+
+    const total = allSubmissions.length;
+    const reviewed = allSubmissions.filter(s => s.status === "Profile Reviewed").length;
+    const accepted = allSubmissions.filter(s => s.status === "Profile Accepted").length;
+    const rejected = allSubmissions.filter(s => s.status === "Profile Rejected").length;
+    const pending = total - reviewed - accepted - rejected;
+
+    const statRowHtml =
+      '<div class="stat-row">' +
+        '<div class="stat-card st-total reveal reveal-up"><div class="snum">' + total + '</div><div class="slabel">Total Applications</div></div>' +
+        '<div class="stat-card st-pending reveal reveal-left"><div class="snum">' + pending + '</div><div class="slabel">Awaiting Action</div></div>' +
+        '<div class="stat-card st-reviewed reveal reveal-up"><div class="snum">' + reviewed + '</div><div class="slabel">Reviewed</div></div>' +
+        '<div class="stat-card st-accepted reveal reveal-right"><div class="snum">' + accepted + '</div><div class="slabel">Accepted</div></div>' +
+        '<div class="stat-card st-rejected reveal reveal-up"><div class="snum">' + rejected + '</div><div class="slabel">Rejected</div></div>' +
+      '</div>';
+
+
+    const chartRowHtml =
+      '<div class="charts-collapsible' + (chartsCollapsed ? ' collapsed' : '') + '"><div>' +
+        '<div class="chart-row">' +
+          '<div class="chart-card reveal reveal-left"><h4>Status Breakdown</h4><div class="chart-canvas-wrap"><canvas id="statusChartCanvas"></canvas></div></div>' +
+          '<div class="chart-card reveal reveal-up"><h4>Brand Allocation</h4><div class="chart-canvas-wrap"><canvas id="brandChartCanvas"></canvas></div></div>' +
+          '<div class="chart-card reveal reveal-scale"><h4>Production Pipeline</h4><div class="chart-canvas-wrap"><canvas id="stageChartCanvas"></canvas></div></div>' +
+        '</div>' +
+      '</div></div>';
+
+    const analyticsToggleHtml =
+      '<div class="analytics-toggle-row">' +
+        '<div class="section-label" style="margin:0">Applications</div>' +
+        '<button class="analytics-toggle-btn" onclick="toggleCharts()">' + (chartsCollapsed ? 'Show charts \u25BE' : 'Hide charts \u25B4') + '</button>' +
+      '</div>';
+
+    const filtered = getFiltered();
+
+    const toolbarHtml =
+      '<div class="toolbar">' +
+        '<div class="toolbar-left">' +
+          '<span class="stat">' + filtered.length + ' of ' + total + ' shown</span>' +
+          '<input class="filter-input" id="searchInput" type="text" placeholder="Search name, email, phone, handle, city..." value="' + escapeHtml(filters.search) + '" oninput="onSearch(this.value)">' +
+          '<select class="filter-select" id="statusFilter" onchange="onFilterStatus(this.value)">' +
+            '<option value="">All statuses</option>' +
+            STATUS_OPTIONS.map(function(o){ return '<option value="' + o.value + '"' + (filters.status===o.value?' selected':'') + '>' + o.label + '</option>'; }).join("") +
+          '</select>' +
+          '<select class="filter-select" id="brandFilter" onchange="onFilterBrand(this.value)">' +
+            '<option value="">All brands</option>' +
+            BRAND_OPTIONS.map(function(b){ return '<option value="' + b + '"' + (filters.brand===b?' selected':'') + '>' + b + '</option>'; }).join("") +
+          '</select>' +
+          '<select class="filter-select" id="stageFilter" onchange="onFilterStage(this.value)">' +
+            '<option value="">All stages</option>' +
+            STAGE_OPTIONS.map(function(st){ return '<option value="' + st + '"' + (filters.stage===st?' selected':'') + '>' + st + '</option>'; }).join("") +
+          '</select>' +
+        '</div>' +
+        '<div class="toolbar-right">' +
+          '<button class="btn btn-teal" onclick="refresh()">Refresh</button>' +
+          '<button class="btn btn-orange" onclick="downloadExcel()">Download as Excel</button>' +
+        '</div>' +
+      '</div>';
+
+    const analyticsPanelOpen = '<div class="analytics-panel" id="analyticsPanel">' + analyticsToggleHtml + statRowHtml + chartRowHtml + toolbarHtml;
+    const analyticsPanelClose = '</div>';
+
+    if (filtered.length === 0){
+      wrap.innerHTML = analyticsPanelOpen + analyticsPanelClose + '<div class="empty-state"><h3>No matches</h3><p>Try clearing the search or filters above.</p></div>';
+      drawCharts();
+      initStickyWatcher();
+      initScrollReveal();
+      return;
+    }
+
+    // Only the columns needed to operate day-to-day stay in the table itself, so every
+    // column fits on screen with no side-scrolling. Each applicant always shows a second
+    // row directly beneath with their remaining profile/content fields — no click needed.
+    const visibleHeaders = ["Applicant", "Contact", "Status", "Allocated Brand", "Stack Amount", "Deposit (Rs)", "Shipment Status", "Production Stage", "Notes"];
+    const colWidths = ['14%','14%','10%','9%','8%','9%','8%','10%','18%'];
+    const colgroupHtml = '<colgroup>' +
+      colWidths.map(function(w){ return '<col style="width:' + w + '">'; }).join('') +
+      '</colgroup>';
+    const theadHtml = "<tr>" + visibleHeaders.map(function(h){ return "<th>" + escapeHtml(h) + "</th>"; }).join("") + "</tr>";
+
+    // A real, plain <div> header row — NOT inside the table, NOT inside anything
+    // with overflow set. table-wrap has overflow-x:auto for small screens, and
+    // having ANY overflow on an ancestor changes what a sticky child sticks
+    // relative to — that's what kept breaking the old <th> sticky header no
+    // matter what was fixed on the th itself. This div sits as a sibling right
+    // above table-wrap, sticky straight against the page — same pattern the
+    // analytics panel already uses successfully above it.
+    const fixedHeaderHtml = '<div class="fixed-col-header" id="fixedColHeader">' +
+      visibleHeaders.map(function(h, i){
+        return '<div class="fch-cell" style="width:' + colWidths[i] + '">' + escapeHtml(h) + '</div>';
+      }).join("") +
+    '</div>';
+
+    const tbodyHtml = filtered.map(function(s, idx){
+      const tintClass = idx % 2 === 0 ? 'entry-tint-a' : 'entry-tint-b';
+      const isRejected = s.status === "Profile Rejected"; // once rejected, only the Status buttons stay editable
+      const dis = isRejected ? ' disabled title="Rejected profiles are locked — change the status to edit again"' : '';
+
+      const safeName = String(s.fullName || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+      const nameCell =
+        '<td class="name-cell">' +
+          '<span class="full-name">' + escapeHtml(s.fullName) + '</span>' +
+          '<span class="sub-line">' + escapeHtml(s.city) + '</span>' +
+          '<button class="delete-entry-btn" onclick="deleteEntry(\'' + s.id + '\', \'' + safeName + '\')" title="Delete this entry">🗑 Delete</button>' +
+        '</td>';
+
+      const contactCell =
+        '<td class="contact-cell">' +
+          escapeHtml(s.phone) +
+          '<span class="sub-line">' + escapeHtml(s.platform) + ' ' + escapeHtml(s.handle) + '</span>' +
+        '</td>';
+
+      const statusCell =
+        '<td><div class="status-btns">' +
+          STATUS_OPTIONS.map(function(o){
+            const isActive = s.status === o.value;
+            return '<button class="stbtn' + (isActive ? ' ' + o.cls : '') + '" onclick="setField(\'' + s.id + '\',\'status\',\'' + o.value + '\')">' + o.label + '</button>';
+          }).join("") +
+        '</div></td>';
+
+      const brandCell =
+        '<td><select class="brand-select' + (s.brand ? ' has-brand' : '') + '"' + dis + ' onchange="setField(\'' + s.id + '\', \'brand\', this.value)">' +
+          '<option value=""' + (s.brand === "" ? ' selected' : '') + '>— Not allocated —</option>' +
+          BRAND_OPTIONS.map(function(b){ return '<option value="' + b + '"' + (s.brand===b?' selected':'') + '>' + b + '</option>'; }).join("") +
+        '</select></td>';
+
+      const cfg = BRAND_FULFILLMENT_CONFIG[s.brand];
+      let depositCell;
+      if (!s.brand){
+        depositCell = '<td><span class="dep-empty">—</span></td>';
+      } else if (cfg.type === "order"){
+        depositCell = '<td><span class="dep-order">🛒 Website Order Required</span></td>';
+      } else {
+        depositCell = '<td><span class="dep-manual">🚚 Manual Shipment</span></td>';
+      }
+
+      const mrpCell =
+        '<td><input type="number" class="mrp-input" placeholder="Enter Amount" value="' + escapeHtml(s.productMRP) + '"' + dis + ' onchange="setField(\'' + s.id + '\',\'productMRP\', this.value)"></td>';
+
+      const shipCls = s.shipmentStatus === "Shipment Delivered" ? " ship-delivered"
+        : s.shipmentStatus === "Shipment In Transit" ? " ship-transit"
+        : s.shipmentStatus === "Shipment Pending" ? " ship-pending" : "";
+      const shipmentCell =
+        '<td><select class="shipment-select' + shipCls + '"' + dis + ' onchange="setField(\'' + s.id + '\', \'shipmentStatus\', this.value)">' +
+          '<option value=""' + (s.shipmentStatus === "" ? ' selected' : '') + '>— Not shipped —</option>' +
+          SHIPMENT_OPTIONS.map(function(sh){ return '<option value="' + sh + '"' + (s.shipmentStatus===sh?' selected':'') + '>' + sh + '</option>'; }).join("") +
+        '</select></td>';
+
+      const stageCell =
+        '<td><select class="stage-select' + (s.stage ? ' has-stage' : '') + '"' + dis + ' onchange="setField(\'' + s.id + '\', \'stage\', this.value)">' +
+          '<option value=""' + (s.stage === "" ? ' selected' : '') + '>— Not started —</option>' +
+          STAGE_OPTIONS.map(function(st){ return '<option value="' + st + '"' + (s.stage===st?' selected':'') + '>' + st + '</option>'; }).join("") +
+        '</select></td>';
+
+      const noteCell =
+        '<td><div class="note-cell">' +
+          '<input class="note-input" type="text" placeholder="Add note..." value="' + escapeHtml(s.note) + '" id="note_' + s.id + '"' + dis + ' onkeydown="if(event.key===\'Enter\') saveNote(\'' + s.id + '\', this)">' +
+          '<button class="note-savebtn"' + dis + ' onclick="saveNote(\'' + s.id + '\', document.getElementById(\'note_' + s.id + '\'), this)">Save</button>' +
+        '</div></td>';
+
+      const sweepColor = ['sweep-gold','sweep-teal','sweep-orange'][idx % 3];
+      const mainRow = '<tr class="entry-main row-reveal ' + sweepColor + ' ' + tintClass + (isRejected ? ' entry-locked' : '') + '">' + nameCell + contactCell + statusCell + brandCell + mrpCell + depositCell + shipmentCell + stageCell + noteCell + "</tr>";
+
+      const fields = [
+        ["Timestamp", s.timestamp], ["Email", s.email],
+        ["Country", s.country], ["State / Province", s.stateProvince], ["Address Line", s.addressLine], ["Pincode", s.pincode],
+        ["Followers", s.followers], ["Avg Views", s.avgViews], ["Dealer Reference", s.dealerRef],
+        ["Content Style", s.contentStyle], ["Wants Associate Programme", s.associate], ["Agreed To Terms", s.agreed]
+      ];
+      const fieldsHtml = fields.map(function(f){
+        return '<div class="detail-field"><div class="dlabel">' + escapeHtml(f[0]) + '</div><div class="dvalue">' + (escapeHtml(f[1]) || '&mdash;') + '</div></div>';
+      }).join("") +
+        '<div class="detail-field pitch-field"><div class="dlabel">Pitch</div><div class="dvalue">' + (escapeHtml(s.pitch) || '&mdash;') + '</div></div>' +
+        '<div class="detail-field spec-field"><div class="dlabel">Specializations</div><div class="dvalue">' + (escapeHtml(s.specializations) || '&mdash;') + '</div></div>' +
+        '<div class="detail-field repeat-field"><div class="dlabel">Eligible For Repeat Collab</div><div class="dvalue"><div class="repeat-controls">' +
+          '<div class="yn-btns">' +
+            '<button class="ynbtn' + (s.repeatEligible==='Yes'?' yn-yes':'') + '"' + dis + ' onclick="setField(\'' + s.id + '\',\'repeatEligible\',\'Yes\')">Yes</button>' +
+            '<button class="ynbtn' + (s.repeatEligible==='No'?' yn-no':'') + '"' + dis + ' onclick="setField(\'' + s.id + '\',\'repeatEligible\',\'No\')">No</button>' +
+          '</div>' +
+          '<select class="brand-select' + (s.repeatBrand ? ' has-brand' : '') + '"' + dis + ' onchange="setField(\'' + s.id + '\', \'repeatBrand\', this.value)">' +
+            '<option value=""' + (s.repeatBrand === "" ? ' selected' : '') + '>— Which brand? —</option>' +
+            BRAND_OPTIONS.map(function(b){ return '<option value="' + b + '"' + (s.repeatBrand===b?' selected':'') + '>' + b + '</option>'; }).join("") +
+          '</select>' +
+        '</div></div></div>';
+      const detailDir = ['reveal-left','reveal-right','reveal-up'][idx % 3];
+      const detailRow = '<tr class="entry-detail ' + tintClass + (isRejected ? ' entry-locked' : '') + '"><td colspan="11"><div class="detail-inner reveal ' + detailDir + '">' + fieldsHtml + '</div></td></tr>';
+
+      return mainRow + detailRow;
+    }).join("");
+
+    wrap.innerHTML = analyticsPanelOpen + analyticsPanelClose +
+      fixedHeaderHtml +
+      '<div class="table-wrap"><table class="data-table">' + colgroupHtml + '<thead class="sr-only">' + theadHtml + '</thead><tbody>' + tbodyHtml + '</tbody></table></div>';
+
+    drawCharts();
+    initStickyWatcher();
+    initScrollReveal();
+  }
+
+  function toggleCharts(){
+    chartsCollapsed = !chartsCollapsed;
+    renderDashboard();
+  }
+
+  // Adds a subtle shadow to the sticky analytics panel once the page has scrolled
+  // past it, so it visually separates from the table scrolling underneath. The
+  // panel element is re-created on every render, so the listener looks it up
+  // fresh each time rather than closing over a (possibly now-detached) node.
+  // Also pins the table header directly below the panel — its height changes
+  // (charts collapsed/expanded), so the header's sticky offset is recalculated
+  // to match, instead of a fixed pixel value that would drift out of sync.
+  let stickyScrollBound = false;
+  function updateStickyShadow(){
+    const panel = document.getElementById('analyticsPanel');
+    if (!panel) return;
+    panel.classList.toggle('is-stuck', panel.getBoundingClientRect().top <= 0);
+    const panelHeight = panel.getBoundingClientRect().height;
+    document.documentElement.style.setProperty('--panel-h', panelHeight + 'px');
+  }
+  function initStickyWatcher(){
+    updateStickyShadow();
+    if (!stickyScrollBound){
+      window.addEventListener('scroll', updateStickyShadow, { passive:true });
+      window.addEventListener('resize', updateStickyShadow, { passive:true });
+      stickyScrollBound = true;
+    }
+  }
+
+  // Cards/charts (.reveal) get a real directional slide; entry rows (.row-reveal,
+  // a <tr> — transforms don't apply to table rows in any browser) get the colour
+  // sweep instead. The whole dashboard is rebuilt via innerHTML on every render,
+  // so old observed nodes are gone — disconnect the previous observer and make
+  // a fresh one over the current DOM rather than letting them pile up.
+  let revealObserver = null;
+  function initScrollReveal(){
+    if (revealObserver) revealObserver.disconnect();
+
+    const revealEls = document.querySelectorAll('.reveal');
+    const parents = new Set();
+    revealEls.forEach(function(el){ parents.add(el.parentElement); });
+    parents.forEach(function(parent){
+      const siblings = Array.prototype.filter.call(parent.children, function(c){
+        return c.classList.contains('reveal');
+      });
+      siblings.forEach(function(el, i){ el.style.transitionDelay = (i * 70) + 'ms'; });
+    });
+
+    const rows = document.querySelectorAll('tr.row-reveal');
+
+    if (!('IntersectionObserver' in window)){
+      revealEls.forEach(function(el){ el.classList.add('reveal-visible'); });
+      rows.forEach(function(el){ el.classList.add('row-visible'); });
+      return;
+    }
+
+    revealObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting){
+          entry.target.classList.add(entry.target.tagName === 'TR' ? 'row-visible' : 'reveal-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+
+    revealEls.forEach(function(el){ revealObserver.observe(el); });
+    rows.forEach(function(el){ revealObserver.observe(el); });
+  }
+
+  function makeGradient(ctx, colorTop, colorBottom, h){
+    const g = ctx.createLinearGradient(0, 0, 0, h || 180);
+    g.addColorStop(0, colorTop);
+    g.addColorStop(1, colorBottom);
+    return g;
+  }
+
+  function drawCharts(){
+    if (typeof Chart === "undefined") return; // Chart.js failed to load (offline?) — dashboard still works without it
+
+    if (statusChart) statusChart.destroy();
+    if (brandChart) brandChart.destroy();
+    if (stageChart) stageChart.destroy();
+
+    const total = allSubmissions.length;
+    const reviewed = allSubmissions.filter(s => s.status === "Profile Reviewed").length;
+    const accepted = allSubmissions.filter(s => s.status === "Profile Accepted").length;
+    const rejected = allSubmissions.filter(s => s.status === "Profile Rejected").length;
+    const pending = total - reviewed - accepted - rejected;
+
+    const statusCtx = document.getElementById('statusChartCanvas');
+    if (statusCtx){
+      statusChart = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Awaiting Action','Reviewed','Accepted','Rejected'],
+          datasets: [{
+            data: [pending, reviewed, accepted, rejected],
+            backgroundColor: ['#FF5A1F', '#14357A', '#3fae6a', '#D8232A'],
+            borderColor: '#ffffff', borderWidth: 2, hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false, cutout:'62%',
+          plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:9.5} } } }
+        }
+      });
+    }
+
+    const brandCtx = document.getElementById('brandChartCanvas');
+    if (brandCtx){
+      const brandCounts = BRAND_OPTIONS.map(b => allSubmissions.filter(s => s.brand === b).length);
+      const bctx = brandCtx.getContext('2d');
+      brandChart = new Chart(brandCtx, {
+        type: 'bar',
+        data: {
+          labels: BRAND_OPTIONS,
+          datasets: [{ data: brandCounts, backgroundColor: makeGradient(bctx, '#1D4BA8', '#14357A'), borderRadius: 6, maxBarThickness: 30 }]
+        },
+        options: {
+          responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ ticks:{ font:{size:9}, color:'#3c4a63' }, grid:{ display:false } },
+            y:{ beginAtZero:true, ticks:{ precision:0, font:{size:10} }, grid:{ color:'#eef1f6' } }
+          }
+        }
+      });
+    }
+
+    const stageCtx = document.getElementById('stageChartCanvas');
+    if (stageCtx){
+      const stageCounts = STAGE_OPTIONS.map(st => allSubmissions.filter(s => s.stage === st).length);
+      const sctx = stageCtx.getContext('2d');
+      stageChart = new Chart(stageCtx, {
+        type: 'bar',
+        data: {
+          labels: STAGE_OPTIONS,
+          datasets: [{ data: stageCounts, backgroundColor: makeGradient(sctx, '#14357A', '#0B1B3A'), borderRadius: 6, maxBarThickness: 18 }]
+        },
+        options: {
+          indexAxis:'y', responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{ display:false } },
+          scales:{
+            x:{ beginAtZero:true, ticks:{ precision:0, font:{size:9.5} }, grid:{ color:'#eef1f6' } },
+            y:{ ticks:{ font:{size:9}, color:'#3c4a63' }, grid:{ display:false } }
+          }
+        }
+      });
+    }
+  }
+
+  function onSearch(val){ filters.search = val; renderDashboard(); refocusSearch(); }
+  function onFilterStatus(val){ filters.status = val; renderDashboard(); }
+  function onFilterBrand(val){ filters.brand = val; renderDashboard(); }
+  function onFilterStage(val){ filters.stage = val; renderDashboard(); }
+  function refocusSearch(){
+    const el = document.getElementById('searchInput');
+    if (el){ el.focus(); el.selectionStart = el.selectionEnd = el.value.length; }
+  }
+
+  function findSubmission(id){
+    return allSubmissions.find(function(s){ return s.id === id; });
+  }
+
+  function setField(id, field, value){
+    const s = findSubmission(id);
+    if (!s) return;
+    const toggleFields = ["status", "depositReceived", "repeatEligible"];
+    const newValue = (toggleFields.indexOf(field) !== -1 && s[field] === value) ? "" : value;
+    s[field] = newValue;
+    renderDashboard();
+    pushUpdate(id, field, newValue);
+    if (field === "status" || field === "brand") checkAndNotify(id);
+  }
+
+  // Fires the right applicant-facing notification the moment it becomes true —
+  // Reviewed and Rejected fire the instant that status is set; Accepted only
+  // fires once a brand is also allocated (whichever of the two happens second
+  // is what triggers it, since the message names the brand).
+  const notifiedFor = {}; // id -> Set of events already sent this session, avoids double-fires from quick re-clicks
+  function checkAndNotify(id){
+    const s = findSubmission(id);
+    if (!s) return;
+
+    let event = null;
+    if (s.status === "Profile Reviewed") event = "reviewed";
+    else if (s.status === "Profile Rejected") event = "rejected";
+    else if (s.status === "Profile Accepted" && s.brand) event = "accepted";
+
+    if (!event) return;
+    if (!notifiedFor[id]) notifiedFor[id] = {};
+    if (notifiedFor[id][event]) return; // already fired this session for this exact event
+    notifiedFor[id][event] = true;
+
+    if (BACKEND_URL.indexOf("PASTE_YOUR") === 0) return;
+    fetch(BACKEND_URL + "/notify?password=" + encodeURIComponent(savedPassword), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, event: event })
+    }).catch(function(){ /* non-blocking — a failed notification shouldn't disrupt dashboard use */ });
+  }
+
+  function saveNote(id, inputEl, btnEl){
+    const s = findSubmission(id);
+    if (!s) return;
+    s.note = inputEl.value;
+    pushUpdate(id, "note", inputEl.value, function(ok){
+      if (btnEl){
+        btnEl.textContent = ok ? "Saved" : "Failed";
+        if (ok) btnEl.classList.add("saved");
+        setTimeout(function(){ btnEl.textContent = "Save"; btnEl.classList.remove("saved"); }, 1400);
+      }
+    });
+  }
+
+  function deleteEntry(id, name){
+    const confirmed = window.confirm("Delete the application from \"" + name + "\"? This cannot be undone.");
+    if (!confirmed) return;
+
+    fetch(BACKEND_URL + "/delete?password=" + encodeURIComponent(savedPassword), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id })
+    })
+      .then(function(res){ return res.ok; })
+      .then(function(ok){
+        if (ok){
+          allSubmissions = allSubmissions.filter(function(s){ return s.id !== id; });
+          renderDashboard();
+        } else {
+          alert("Could not delete that entry — check your connection and try again.");
+        }
+      })
+      .catch(function(){ alert("Could not delete that entry — check your connection and try again."); });
+  }
+
+  function pushUpdate(id, field, value, callback){
+    if (BACKEND_URL.indexOf("PASTE_YOUR") === 0) return;
+    fetch(BACKEND_URL + "/update?password=" + encodeURIComponent(savedPassword), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, field: field, value: value })
+    })
+      .then(function(res){ return res.ok; })
+      .then(function(ok){ if (callback) callback(ok); if (!ok) alert("Could not save that change — check your connection and try again."); })
+      .catch(function(){ if (callback) callback(false); alert("Could not save that change — check your connection and try again."); });
+  }
+
+  // Builds a real, Excel-openable file (CSV) from the currently loaded data — no external libraries needed.
+  function downloadExcel(){
+    const escapeCsv = function(val){
+      const s = String(val === null || val === undefined ? "" : val);
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    };
+
+    const headers = BASE_HEADERS.concat(EXTRA_HEADERS);
+    const lines = [];
+    lines.push(headers.map(escapeCsv).join(","));
+    allSubmissions.forEach(function(s){
+      const cfg = BRAND_FULFILLMENT_CONFIG[s.brand];
+      const fulfillment = !s.brand ? "" : (cfg.type === "order" ? "Website Order Required" : "Manual Shipment");
+      const row = [
+        s.timestamp, s.fullName, s.phone, s.email, s.city, s.country, s.stateProvince, s.addressLine, s.pincode, s.platform, s.handle,
+        s.followers, s.avgViews, s.dealerRef, s.contentStyle, s.pitch, s.specializations, s.associate, s.agreed,
+        s.status, s.brand, s.productMRP, fulfillment, s.shipmentStatus,
+        s.stage, s.note, s.repeatEligible, s.repeatBrand
+      ];
+      lines.push(row.map(escapeCsv).join(","));
+    });
+
+    // BOM so Excel opens accented/UTF-8 characters correctly.
+    const csvContent = "\uFEFF" + lines.join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().slice(0,10);
+    a.download = "seleven_applications_" + stamp + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+</script>
+
+</body>
+</html>
